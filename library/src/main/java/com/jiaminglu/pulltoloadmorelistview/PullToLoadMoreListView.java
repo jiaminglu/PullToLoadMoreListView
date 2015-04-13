@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -46,6 +45,16 @@ public class PullToLoadMoreListView extends ListView {
         touchSlop = config.getScaledTouchSlop();
     }
 
+    public int getAnimationDuration() {
+        return animationDuration;
+    }
+
+    public void setAnimationDuration(int animationDuration) {
+        this.animationDuration = animationDuration;
+    }
+
+    private int animationDuration = 200;
+
     private int touchSlop;
 
     public boolean isPullEnabled() {
@@ -56,7 +65,7 @@ public class PullToLoadMoreListView extends ListView {
         this.pullEnabled = pullEnabled;
     }
 
-    boolean pullEnabled = true;
+    private boolean pullEnabled = true;
 
     public View getPullView() {
         return pullView;
@@ -67,14 +76,13 @@ public class PullToLoadMoreListView extends ListView {
         addHeaderView(pullView);
     }
 
-    View pullView;
+    private View pullView;
 
     /**
      * Notify the ListView how many items have been loaded, then scroll to  old items.
      * @param itemsLoaded
      */
     public void loaded(final int itemsLoaded) {
-        loading = false;
         if (pullAnimator != null) {
             pullAnimator.cancel();
         }
@@ -84,36 +92,21 @@ public class PullToLoadMoreListView extends ListView {
             smoothScrollToPosition(itemsLoaded - 1);
             int newEmptyHeight = calculateEmptyHeight();
             if (newEmptyHeight >= 0 && emptyHeight - newEmptyHeight - pullView.getMeasuredHeight() > 0) {
-                ObjectAnimator.ofFloat(this, "translationY", - (emptyHeight - newEmptyHeight - pullView.getMeasuredHeight()), 0).setDuration(200).start();
+                ObjectAnimator.ofFloat(this, "translationY", - (emptyHeight - newEmptyHeight - pullView.getMeasuredHeight()), 0).setDuration(animationDuration).start();
             }
             pullProgress = 0;
         } else {
             pullAnimateTo(0);
         }
     }
-    boolean loading = false;
-
-    OnLoadMoreListener onLoadMoreListener;
 
     public void setOnPullListener(OnPullListener onPullListener) {
         this.onPullListener = onPullListener;
     }
 
-    OnPullListener onPullListener;
-
-    public void setOnLoadMoreListener(OnLoadMoreListener listener) {
-        onLoadMoreListener = listener;
-    }
-
-    /**
-     * Do actual load more oprations here, must call listView.loaded(int) afterward.
-     */
-    public interface OnLoadMoreListener {
-        public void onLoadMore(PullToLoadMoreListView listView);
-    }
-
+    private OnPullListener onPullListener;
     public interface OnPullListener {
-        public void onPull(float distance, float total);
+        public void onPull(int distance, int total);
         public void onStartLoading();
     }
 
@@ -146,10 +139,10 @@ public class PullToLoadMoreListView extends ListView {
         }
     }
 
-    int pullProgress = 0;
+    private int pullProgress = 0;
 
-    float lastX;
-    float lastY;
+    private float lastX;
+    private float lastY;
     @Override
     public final boolean onInterceptTouchEvent(@NotNull MotionEvent event) {
         if (!isPullEnabled())
@@ -169,9 +162,9 @@ public class PullToLoadMoreListView extends ListView {
         return super.onInterceptTouchEvent(event);
     }
 
-    boolean pulling = false;
+    private boolean pulling = false;
 
-    ValueAnimator pullAnimator;
+    private ValueAnimator pullAnimator;
     void pullAnimateTo(final int progress) {
         if (pullAnimator != null)
             pullAnimator.cancel();
@@ -206,10 +199,10 @@ public class PullToLoadMoreListView extends ListView {
 
             }
         });
-        pullAnimator.setDuration(200).start();
+        pullAnimator.setDuration(animationDuration).start();
     }
 
-    int emptyHeight = 0;
+    private int emptyHeight = 0;
 
     int calculateEmptyHeight() {
         return Math.max(0, getChildCount() == 0 ? getHeight() : getBottom() - getChildAt(getChildCount() - 1).getBottom()) - getPaddingBottom();
@@ -245,33 +238,9 @@ public class PullToLoadMoreListView extends ListView {
                 break;
             case MotionEvent.ACTION_UP:
                 if (pulling) {
-                    if (pullProgress >= pullView.getMeasuredHeight() && onLoadMoreListener != null) {
+                    if (pullProgress >= pullView.getMeasuredHeight() && onPullListener != null) {
                         pullAnimateTo(pullView.getMeasuredHeight());
-                        if (onPullListener != null) {
-                            onPullListener.onStartLoading();
-                            loading = true;
-                        }
-                        pullAnimator.addListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                onLoadMoreListener.onLoadMore(PullToLoadMoreListView.this);
-                            }
-
-                            @Override
-                            public void onAnimationCancel(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animation) {
-
-                            }
-                        });
+                        onPullListener.onStartLoading();
                     } else {
                         pullAnimateTo(0);
                     }

@@ -34,7 +34,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         listView = (PullToLoadMoreListView) findViewById(R.id.list);
-        loadItems(10);
+        loadItems(3);
         listView.setPullEnabled(true);
         listView.setPullView(loadView = getLayoutInflater().inflate(R.layout.load_view, null));
         listView.setAdapter(adapter = new BaseAdapter() {
@@ -62,9 +62,14 @@ public class MainActivity extends ActionBarActivity {
                 return view;
             }
         });
-        listView.setOnLoadMoreListener(new PullToLoadMoreListView.OnLoadMoreListener() {
+        listView.setOnPullListener(new PullToLoadMoreListView.OnPullListener() {
             @Override
-            public void onLoadMore(final PullToLoadMoreListView listView) {
+            public void onPull(int distance, int total) {
+                ((TextView)loadView.findViewById(R.id.text)).setText(distance < total ? "Pull to load more" : "Release to load more");
+            }
+
+            @Override
+            public void onStartLoading() {
                 loadView.findViewById(R.id.text).setVisibility(View.GONE);
                 loadView.findViewById(R.id.progress).setVisibility(View.VISIBLE);
                 listView.postDelayed(new Runnable() {
