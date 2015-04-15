@@ -113,7 +113,7 @@ public class PullToLoadMoreListView extends ListView {
     @Override
     public void onMeasure(int widthSpec, int heightSpec) {
         super.onMeasure(widthSpec, heightSpec);
-        if (pullEnabled) {
+        if (pullView != null) {
             pullView.measure(widthSpec, 0);
             setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight() + pullView.getMeasuredHeight());
         }
@@ -121,7 +121,7 @@ public class PullToLoadMoreListView extends ListView {
 
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (pullEnabled)
+        if (pullView != null)
             super.onLayout(changed, l, t, r, b + pullView.getMeasuredHeight());
         else
             super.onLayout(changed, l, t, r, b);
@@ -129,7 +129,7 @@ public class PullToLoadMoreListView extends ListView {
 
     @Override
     public void dispatchDraw(@NotNull Canvas canvas) {
-        if (pullEnabled) {
+        if (pullView != null) {
             canvas.save();
             canvas.translate(0, pullProgress - pullView.getMeasuredHeight());
             super.dispatchDraw(canvas);

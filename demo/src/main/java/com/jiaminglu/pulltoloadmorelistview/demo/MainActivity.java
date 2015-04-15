@@ -22,11 +22,15 @@ public class MainActivity extends ActionBarActivity {
         for (int i = 0; i < count; i++) {
             items.add(0, String.format("Item #%d", items.size()));
         }
+        if (-- limitPullTimes == 0)
+            listView.setPullEnabled(false);
     }
 
     BaseAdapter adapter;
     PullToLoadMoreListView listView;
     View loadView;
+
+    int limitPullTimes = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
