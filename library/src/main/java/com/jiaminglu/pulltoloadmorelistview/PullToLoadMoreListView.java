@@ -120,14 +120,6 @@ public class PullToLoadMoreListView extends ListView {
     }
 
     @Override
-    public void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (pullView != null)
-            super.onLayout(changed, l, t, r, b + pullView.getMeasuredHeight());
-        else
-            super.onLayout(changed, l, t, r, b);
-    }
-
-    @Override
     public void dispatchDraw(@NotNull Canvas canvas) {
         if (pullView != null) {
             canvas.save();
@@ -230,8 +222,14 @@ public class PullToLoadMoreListView extends ListView {
                     if (onPullListener != null) {
                         onPullListener.onPull(pullProgress, pullView.getMeasuredHeight());
                     }
-                    pulling = true;
-                    event.setAction(MotionEvent.ACTION_CANCEL);
+                    if (pullProgress < 0) {
+                        pulling = false;
+                        pullProgress = 0;
+                        event.setAction(MotionEvent.ACTION_DOWN);
+                    } else {
+                        pulling = true;
+                        event.setAction(MotionEvent.ACTION_CANCEL);
+                    }
                     super.onTouchEvent(event);
                     return true;
                 }
