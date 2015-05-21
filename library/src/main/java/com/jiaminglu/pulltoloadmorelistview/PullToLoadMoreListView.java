@@ -216,20 +216,33 @@ public class PullToLoadMoreListView extends ListView {
                         lastX = event.getX();
                         lastY = event.getY();
                     }
+                    int max = pullView.getMeasuredHeight();
                     float delta = event.getY() - lastY;
-                    pullProgress = (int) (delta / 2);
-                    invalidate();
+                    if (delta < 0) {
+                        pullProgress = (int) delta;
+                    } else if (delta <= max) {
+                        float a = -0.25f / max;
+                        pullProgress = (int) (a * delta * delta + delta);
+                    } else {
+                        delta -= max * 4 / 3.0;
+                        pullProgress = (int) (max + delta / 2);
+                    }
                     if (onPullListener != null) {
                         onPullListener.onPull(pullProgress, pullView.getMeasuredHeight());
                     }
                     if (pullProgress < 0) {
-                        pulling = false;
+                        if (pulling) {
+                            event.setAction(MotionEvent.ACTION_DOWN);
+                            pulling = false;
+                        }
                         pullProgress = 0;
-                        event.setAction(MotionEvent.ACTION_DOWN);
                     } else {
-                        pulling = true;
-                        event.setAction(MotionEvent.ACTION_CANCEL);
+                        if (!pulling) {
+                            event.setAction(MotionEvent.ACTION_CANCEL);
+                            pulling = true;
+                        }
                     }
+                    invalidate();
                     super.onTouchEvent(event);
                     return true;
                 }
