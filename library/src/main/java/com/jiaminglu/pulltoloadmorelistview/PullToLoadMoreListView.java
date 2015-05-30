@@ -200,6 +200,9 @@ public class PullToLoadMoreListView extends ListView {
         return Math.max(0, getChildCount() == 0 ? getHeight() : getBottom() - getChildAt(getChildCount() - 1).getBottom()) - getPaddingBottom();
     }
 
+    private final static double OVERSCROLL_SPEED = 1.0 / 4;
+    private final static double A = (OVERSCROLL_SPEED - 1) / 2;
+
     @Override
     public final boolean onTouchEvent(@NotNull MotionEvent event) {
         if (!isPullEnabled())
@@ -221,11 +224,9 @@ public class PullToLoadMoreListView extends ListView {
                     if (delta < 0) {
                         pullProgress = (int) delta;
                     } else if (delta <= max) {
-                        float a = -0.25f / max;
-                        pullProgress = (int) (a * delta * delta + delta);
+                        pullProgress = (int) (A / max * delta * delta + delta);
                     } else {
-                        delta -= max * 4 / 3.0;
-                        pullProgress = (int) (max + delta / 2);
+                        pullProgress = (int) (max * (1 + A) + (delta - max) * OVERSCROLL_SPEED);
                     }
                     if (onPullListener != null) {
                         onPullListener.onPull(pullProgress, pullView.getMeasuredHeight());
